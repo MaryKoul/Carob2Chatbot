@@ -1,7 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { SessionsClient } = require('@google-cloud/dialogflow');
-const { GoogleAuth } = require('google-auth-library');
+
+const client = new SessionsClient({
+  keyFilename: 'dialogflow-key.json'
+});
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,13 +16,8 @@ app.get('/', (req, res) => {
 app.use(bodyParser.json());
 
 app.post('/dialogflowGateway', async (req, res) => {
-  const projectId = 'mary-yecb'; // << δικό σου project id
+  const projectId = 'mary-yecb';
 
-  const auth = new GoogleAuth({
-    scopes: 'https://www.googleapis.com/auth/cloud-platform',
-  });
-
-  const client = new SessionsClient({ auth });
   const sessionPath = client.projectAgentSessionPath(
     projectId,
     Math.random().toString(36).substring(7)
@@ -35,12 +33,17 @@ app.post('/dialogflowGateway', async (req, res) => {
     },
   };
 
-  const responses = await client.detectIntent(request);
-  const result = responses[0].queryResult;
-
-  res.json({ reply: result.fulfillmentText });
+  try {
+    const responses = await client.detectIntent(request);
+    const result = responses[0].queryResult;
+    res.json({ reply: result.fulfillmentText });
+  } catch (error) {
+    console.error('Dialogflow error:', error);
+    res.json({ reply: 'Σφάλμα κατά την επικοινωνία με Dialogflow.' });
+  }
 });
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-}); 
+});
+
