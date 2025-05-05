@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const { SessionsClient } = require('@google-cloud/dialogflow');
 
 const client = new SessionsClient({
-  keyFilename: 'dialogflow-key.json'
+  credentials: JSON.parse(process.env.DIALOGFLOW_CREDENTIALS)
 });
 
 const app = express();
